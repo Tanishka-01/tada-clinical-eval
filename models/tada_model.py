@@ -29,15 +29,26 @@ def _get_tada_components():
     from transformers import AutoTokenizer
 
     try:
-        from hume_tada import Encoder, TadaForCausalLM
+        from tada.modules.encoder import Encoder
+        from tada.modules.tada import TadaForCausalLM
     except ImportError:
-        try:
-            from tada import Encoder, TadaForCausalLM
-        except ImportError:
-            raise ImportError(
-                "TADA model not found. Install with: pip install hume-tada\n"
-                "See https://github.com/HumeAI/tada for details."
-            )
+        raise ImportError(
+            "TADA model not found. Install with: pip install hume-tada\n"
+            "See https://github.com/HumeAI/tada for details."
+        )
+
+    # Check HuggingFace authentication — TADA-1B is gated (built on Llama 3.2)
+    try:
+        from huggingface_hub import whoami
+        whoami()
+    except Exception:
+        raise RuntimeError(
+            "HuggingFace authentication required for TADA-1B (gated model).\n"
+            "Please login with:\n"
+            "    from huggingface_hub import login\n"
+            "    login(token='your_hf_token')\n"
+            "Get your token at: https://huggingface.co/settings/tokens"
+        )
 
     logger.info("Loading TADA encoder from HumeAI/tada-codec ...")
     _TADA_ENCODER = Encoder.from_pretrained(
@@ -81,10 +92,8 @@ class TADAModel(TTSModel):
 
     def is_available(self) -> bool:
         try:
-            try:
-                import hume_tada  # noqa: F401
-            except ImportError:
-                import tada  # noqa: F401
+            from tada.modules.encoder import Encoder  # noqa: F401
+            from tada.modules.tada import TadaForCausalLM  # noqa: F401
             import torch  # noqa: F401
             from transformers import AutoTokenizer  # noqa: F401
             return True

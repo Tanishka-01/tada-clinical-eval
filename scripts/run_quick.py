@@ -3,7 +3,8 @@
 
 import logging
 import sys
-from datetime import datetime
+import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -64,7 +65,7 @@ def main():
     )
 
     from evaluation.storage import save_results, save_csv, load_csv
-    ts = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+    ts = datetime.now(tz=timezone.utc).strftime("%Y%m%d_%H%M%S")
     results_path = f"{output_dir}/quick_results_{ts}.json"
     csv_path = f"{output_dir}/quick_results_{ts}.csv"
     save_results(results, results_path)

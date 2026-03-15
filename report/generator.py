@@ -29,38 +29,46 @@ MID_GRAY = colors.HexColor("#666666")
 LIGHT_BG = colors.HexColor("#f5f5ff")
 
 
+def _add_style(styles, style):
+    """Add a ParagraphStyle to the stylesheet, ignoring duplicates."""
+    try:
+        styles.add(style)
+    except KeyError:
+        pass  # Style already exists in the default stylesheet
+
+
 def _build_styles():
     styles = getSampleStyleSheet()
-    styles.add(ParagraphStyle(
+    _add_style(styles, ParagraphStyle(
         "CustomTitle", parent=styles["Title"], fontSize=20, textColor=HUME_PURPLE,
         spaceAfter=12, alignment=TA_CENTER, fontName="Helvetica-Bold", leading=26,
     ))
-    styles.add(ParagraphStyle(
+    _add_style(styles, ParagraphStyle(
         "CustomSubtitle", parent=styles["Normal"], fontSize=11, textColor=MID_GRAY,
         spaceAfter=4, alignment=TA_CENTER, fontName="Helvetica",
     ))
-    styles.add(ParagraphStyle(
+    _add_style(styles, ParagraphStyle(
         "SectionHeader", parent=styles["Heading1"], fontSize=15, textColor=HUME_PURPLE,
         spaceBefore=16, spaceAfter=8, fontName="Helvetica-Bold",
     ))
-    styles.add(ParagraphStyle(
+    _add_style(styles, ParagraphStyle(
         "SubsectionHeader", parent=styles["Heading2"], fontSize=12, textColor=DARK_GRAY,
         spaceBefore=10, spaceAfter=6, fontName="Helvetica-Bold",
     ))
-    styles.add(ParagraphStyle(
+    _add_style(styles, ParagraphStyle(
         "BodyText", parent=styles["Normal"], fontSize=10, textColor=DARK_GRAY,
         spaceAfter=8, alignment=TA_JUSTIFY, fontName="Helvetica", leading=14,
     ))
-    styles.add(ParagraphStyle(
+    _add_style(styles, ParagraphStyle(
         "AbstractText", parent=styles["Normal"], fontSize=10, textColor=DARK_GRAY,
         spaceAfter=8, alignment=TA_JUSTIFY, fontName="Helvetica-Oblique", leading=14,
         leftIndent=20, rightIndent=20,
     ))
-    styles.add(ParagraphStyle(
+    _add_style(styles, ParagraphStyle(
         "BulletItem", parent=styles["Normal"], fontSize=10, textColor=DARK_GRAY,
         spaceAfter=4, fontName="Helvetica", leading=14, leftIndent=20,
     ))
-    styles.add(ParagraphStyle(
+    _add_style(styles, ParagraphStyle(
         "Caption", parent=styles["Normal"], fontSize=8, textColor=MID_GRAY,
         spaceAfter=6, alignment=TA_CENTER, fontName="Helvetica-Oblique",
     ))
