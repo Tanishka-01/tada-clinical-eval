@@ -13,42 +13,24 @@ def _get_speaker_model():
     global _SPEAKER_MODEL
     if _SPEAKER_MODEL is not None:
         return _SPEAKER_MODEL
-    logger.info("Loading SpeechBrain speaker encoder (downloads on first run)...")
-    try:
-        from speechbrain.inference import EncoderClassifier
-    except ImportError:
-        # Fallback for older speechbrain versions
-        from speechbrain.pretrained import EncoderClassifier
-    _SPEAKER_MODEL = EncoderClassifier.from_hparams(
-        source="speechbrain/spkrec-ecapa-voxceleb",
-        run_opts={"device": "cpu"},
-    )
-    logger.info("Speaker encoder loaded.")
+    logger.info("Loading resemblyzer VoiceEncoder...")
+    from resemblyzer import VoiceEncoder
+    _SPEAKER_MODEL = VoiceEncoder(device="cpu")
+    logger.info("VoiceEncoder loaded.")
     return _SPEAKER_MODEL
 
 
 def embed(audio_bytes: bytes) -> Optional[np.ndarray]:
-    import torch
-    import torchaudio
-
     try:
+        import soundfile as sf
+        from resemblyzer import preprocess_wav
+
         model = _get_speaker_model()
-    except Exception as e:
-        logger.warning(f"Speaker model failed to load: {e}")
-        return None
-
-    try:
         buf = io.BytesIO(audio_bytes)
-        waveform, sr = torchaudio.load(buf)
-
-        if sr != 16000:
-            waveform = torchaudio.functional.resample(waveform, sr, 16000)
-        if waveform.shape[0] > 1:
-            waveform = waveform.mean(dim=0, keepdim=True)
-
-        with torch.no_grad():
-            embedding = model.encode_batch(waveform)
-        return embedding.squeeze().cpu().numpy()
+        wav, sr = sf.read(buf, dtype="float32")
+        # preprocess_wav expects mono float32 at 16 kHz
+        wav = preprocess_wav(wav, source_sr=sr)
+        return model.embed_utterance(wav)
     except Exception as e:
         logger.warning(f"Speaker embedding failed: {e}")
         return None
@@ -67,8 +49,7 @@ def compute_similarity(ref_bytes: bytes, gen_bytes: bytes) -> Optional[float]:
         if norm_ref == 0 or norm_gen == 0:
             return 0.0
         cos_sim = float(np.dot(ref_emb, gen_emb) / (norm_ref * norm_gen))
-        # Map from [-1, 1] to [0, 1]
-        return max(0.0, min(1.0, (cos_sim + 1.0) / 2.0))
+        return max(0.0, min(1.0, cos_sim))
     except Exception as e:
         logger.warning(f"Speaker similarity computation failed: {e}")
         return None

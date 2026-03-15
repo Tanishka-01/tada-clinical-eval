@@ -5,7 +5,7 @@ torchaudio
 librosa
 openai-whisper
 jiwer
-speechbrain
+resemblyzer
 edge-tts
 TTS
 transformers
